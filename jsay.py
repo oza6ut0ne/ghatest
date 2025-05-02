@@ -86,7 +86,6 @@ class Settings(BaseSettings):
         }
 
 
-logger = logging.getLogger(__name__)
 settings = Settings()
 if Path(settings.alkana_extra_data).is_file():
     alkana.add_external_data(settings.alkana_extra_data)
@@ -103,6 +102,7 @@ else:
     USER_DIC = {}
     USER_DATA_REGEX = None
 
+logger = logging.getLogger(__name__)
 
 __queue: queue.Queue | None = None
 __thread: threading.Thread | None = None
