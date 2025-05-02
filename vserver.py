@@ -14,8 +14,8 @@
 #
 # [tool.uv.sources]
 # voicevox-core = [
-#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_x86_64.whl", marker = "platform_machine == 'x86_64'"},
-#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_aarch64.whl", marker = "platform_machine != 'x86_64'"},
+#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_x86_64.whl", marker = "platform_machine == 'x86_64'"},
+#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_aarch64.whl", marker = "platform_machine != 'x86_64'"},
 # ]
 # ///
 
@@ -32,6 +32,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import Response
 from pydantic import BaseModel, BaseSettings
+from voicevox_core import AccelerationMode
 
 import vsay
 
@@ -80,6 +81,7 @@ class Settings(BaseSettings):
     english_to_kana: bool = True
     use_user_dic: bool = True
     shorten_urls: bool = False
+    acceleration_mode: AccelerationMode = 'AUTO'
     speaker_id: int = 1
     # speaker_id: int = 3
     # speaker_id: int = 7
@@ -91,6 +93,9 @@ class Settings(BaseSettings):
         env_file = _find_default_path('.env')
         fields = {
             'debug': {'env': ['vserver_debug', 'debug']},
+            'acceleration_mode': {
+                'env': ['vserver_acceleration_mode', 'acceleration_mode']
+            },
             'speaker_id': {'env': ['vserver_speaker_id', 'speaker_id']},
         }
 
@@ -105,7 +110,6 @@ settings = Settings()
 logger_mqtt = logging.getLogger('mqtt')
 logger_http = logging.getLogger('http')
 logger_uvicorn = logging.getLogger('uvicorn')
-logging.getLogger('asyncio').setLevel(logging.WARNING)
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -153,6 +157,7 @@ def on_message(client, userdata, message):
             use_user_dic,
             shorten_urls,
             speaker_id,
+            settings.acceleration_mode,
             is_threaded=True,
         )
     except Exception as e:
@@ -204,6 +209,7 @@ async def get_say(
             use_user_dic,
             shorten_urls,
             speaker_id,
+            settings.acceleration_mode,
             is_threaded=True,
         )
     except Exception as e:
@@ -226,6 +232,7 @@ async def post_say(param: SayParam):
             param.use_user_dic,
             param.shorten_urls,
             param.speaker_id,
+            settings.acceleration_mode,
             is_threaded=True,
         )
     except Exception as e:
@@ -257,6 +264,7 @@ async def get_audio(
             use_user_dic,
             shorten_urls,
             speaker_id,
+            settings.acceleration_mode,
         )
     except Exception as e:
         logger_uvicorn.error(e)
@@ -279,6 +287,7 @@ async def post_audio(param: SayParam):
             param.use_user_dic,
             param.shorten_urls,
             param.speaker_id,
+            settings.acceleration_mode,
         )
     except Exception as e:
         logger_uvicorn.error(e)
