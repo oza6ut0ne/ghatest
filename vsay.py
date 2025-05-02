@@ -11,8 +11,8 @@
 #
 # [tool.uv.sources]
 # voicevox-core = [
-#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_x86_64.whl", marker = "platform_machine == 'x86_64'"},
-#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_aarch64.whl", marker = "platform_machine != 'x86_64'"},
+#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_x86_64.whl", marker = "platform_machine == 'x86_64'"},
+#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_aarch64.whl", marker = "platform_machine != 'x86_64'"},
 # ]
 # ///
 
@@ -33,7 +33,8 @@ from pathlib import Path
 import alkana
 import fasteners
 from pydantic import BaseSettings
-from voicevox_core import VoicevoxCore
+from voicevox_core import AccelerationMode
+from voicevox_core.blocking import Onnxruntime, OpenJtalk, Synthesizer, VoiceModelFile
 
 MAIN_DIR = Path(__file__).resolve().parent
 APPIMAGE_FILE = os.environ.get('APPIMAGE')
@@ -42,6 +43,32 @@ APPIMAGE_DIR = Path(APPIMAGE_FILE).parent if APPIMAGE_FILE else None
 URL_REPLACE_TEXT = 'URL'
 URL_REGEX = re.compile(r'(https?|ftp)(:\/\/[-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]+)')
 SPLIT_TEXT_REGEX = re.compile(r'(?<=[\n　。、！？!?」』)）】》])|(?<=\.\s)')
+
+# https://github.com/VOICEVOX/voicevox_vvm/blob/0.1.0/README.md
+VVM_TO_STYLE_IDS_MAP = {
+    '0.vvm': [0, 1, 2, 3, 4, 5, 6, 7, 8, 10],
+    '1.vvm': [14],
+    '2.vvm': [15, 16, 17, 18],
+    '3.vvm': [9, 61, 62, 63, 64, 65],
+    '4.vvm': [11, 21],
+    '5.vvm': [19, 22, 36, 37, 38],
+    '6.vvm': [29, 30, 31],
+    '7.vvm': [27, 28],
+    '8.vvm': [23, 24, 25, 26],
+    '9.vvm': [12, 32, 33, 34, 35],
+    '10.vvm': [39, 40, 41, 42],
+    '11.vvm': [43, 44, 45, 47, 48, 49, 50],
+    '12.vvm': [51, 52, 53],
+    '13.vvm': [54, 55, 56, 57, 58, 59, 60],
+    '14.vvm': [67, 68, 69, 70, 71, 72, 73, 74],
+    '15.vvm': [13, 20, 46, 66, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86],
+    '16.vvm': [87, 88],
+    '17.vvm': [89],
+    '18.vvm': [90, 91, 92, 93, 94, 95, 96, 97, 98],
+}
+STYLE_ID_TO_VVM_MAP = {
+    _id: vvm for vvm, ids in VVM_TO_STYLE_IDS_MAP.items() for _id in ids
+}
 
 
 def _create_default_path(rel_path):
@@ -58,6 +85,8 @@ DEFAULT_USER_DIC = _create_default_path('user_dic.csv')
 
 class Settings(BaseSettings):
     debug: bool = False
+    onnxruntime: str = str(MAIN_DIR / 'libvoicevox_onnxruntime.so')
+    voicevox_models: str = str(MAIN_DIR / 'vvms')
     open_jtalk_dic: str = str(MAIN_DIR / 'open_jtalk_dic_utf_8-1.11')
     alkana_extra_data: str = str(DEFAULT_ALKANA_EXTRA_DATA)
     user_dic: str = str(DEFAULT_USER_DIC)
@@ -72,6 +101,7 @@ class Settings(BaseSettings):
     use_user_dic: bool = True
     shorten_urls: bool = False
     cpu_num_threads: int = 0
+    acceleration_mode: AccelerationMode = 'AUTO'
     speaker_id: int = 3
 
     class Config:
@@ -84,6 +114,8 @@ class Settings(BaseSettings):
         )
         fields = {
             'debug': {'env': ['vsay_debug', 'debug']},
+            'onnxruntime': {'env': ['vsay_onnxruntime', 'onnxruntime']},
+            'voicevox_models': {'env': ['vsay_voicevox_models', 'voicevox_models']},
             'open_jtalk_dic': {'env': ['vsay_open_jtalk_dic', 'open_jtalk_dic']},
             'alkana_extra_data': {
                 'env': ['vsay_alkana_extra_data', 'alkana_extra_data']
@@ -112,26 +144,47 @@ else:
 
 logger = logging.getLogger(__name__)
 for name in [
+    'asyncio',
+    'tracing.span',
+    'voicevox_core.synthesizer',
     'voicevox_core_python_api',
-    'onnxruntime.onnxruntime',
+    'ort'
 ]:
-    logging.getLogger(name).setLevel(logging.WARNING)
+    logging.getLogger(name).setLevel(logging.ERROR)
     del name
 
 __queue: queue.Queue | None = None
 __thread: threading.Thread | None = None
-__core: VoicevoxCore | None = None
+
+__core: Synthesizer | None = None
+__onnxruntime: Onnxruntime | None = None
+__open_jtalk: OpenJtalk | None = None
 
 
 def __ensure_core(speaker_id=None):
     global __core
+    global __onnxruntime
+    global __open_jtalk
+
     if __core is None:
-        __core = VoicevoxCore(
-            open_jtalk_dict_dir=settings.open_jtalk_dic,
+        if __onnxruntime is None:
+            __onnxruntime = Onnxruntime.load_once(filename=settings.onnxruntime)
+        if __open_jtalk is None:
+            __open_jtalk = OpenJtalk(settings.open_jtalk_dic)
+        __core = Synthesizer(
+            onnxruntime=__onnxruntime,
+            open_jtalk=__open_jtalk,
+            acceleration_mode=settings.acceleration_mode,
             cpu_num_threads=settings.cpu_num_threads,
         )
-    if speaker_id is not None and not __core.is_model_loaded(speaker_id):
-        __core.load_model(speaker_id)
+
+    if speaker_id is not None:
+        vvm = STYLE_ID_TO_VVM_MAP.get(speaker_id)
+        if vvm is None:
+            raise ValueError(f'Invalid speaker_id: {speaker_id}')
+        with VoiceModelFile.open(Path(settings.voicevox_models) / vvm) as model:
+            if not __core.is_loaded_voice_model(model.id):
+                __core.load_voice_model(model)
 
 
 def __ensure_worker():
@@ -261,7 +314,7 @@ def generate_audio_bytes(
                 continue
 
             __ensure_core(speaker_id)
-            audio_query = __core.audio_query(text, speaker_id)
+            audio_query = __core.create_audio_query(text, speaker_id)
             audio_query.speed_scale = speed
             audio_query.pitch_scale = fm
             audio_query.volume_scale = 2.0
