@@ -13,8 +13,8 @@
 #
 # [tool.uv.sources]
 # voicevox-core = [
-#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_x86_64.whl", marker = "platform_machine == 'x86_64'"},
-#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_aarch64.whl", marker = "platform_machine == 'aarch64'"},
+#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_x86_64.whl", marker = "platform_machine == 'x86_64'"},
+#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_aarch64.whl", marker = "platform_machine == 'aarch64'"},
 # ]
 # ///
 
@@ -84,11 +84,18 @@ logging.basicConfig(level=logging.INFO)
 if settings.debug:
     logging.basicConfig(level=logging.DEBUG, force=True)
 
+for name in [
+    'asyncio',
+    'tracing.span',
+    'voicevox_core.synthesizer',
+    'voicevox_core_python_api',
+]:
+    library_logger = logging.getLogger(name)
+    library_logger.setLevel(logging.WARNING)
+
 logger = logging.getLogger('mqtt')
 logger_http = logging.getLogger('http')
 logger_uvicorn = logging.getLogger('uvicorn')
-logger_onnxruntime = logging.getLogger('onnxruntime.onnxruntime')
-logger_onnxruntime.setLevel(logging.WARNING)
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -113,6 +120,7 @@ def on_message(client, userdata, message):
         )
         english_to_kana = data.get('english_to_kana', settings.english_to_kana)
         shorten_urls = data.get('shorten_urls', settings.shorten_urls)
+        speaker_id = data.get('speaker_id', settings.speaker_id)
     except json.JSONDecodeError:
         text = payload
         r = settings.r
@@ -120,6 +128,7 @@ def on_message(client, userdata, message):
         english_word_min_length = settings.english_word_min_length
         english_to_kana = settings.english_to_kana
         shorten_urls = settings.shorten_urls
+        speaker_id = settings.speaker_id
 
     logger.info(text.replace('\n', ' '))
     try:
@@ -130,7 +139,7 @@ def on_message(client, userdata, message):
             english_word_min_length,
             english_to_kana,
             shorten_urls,
-            settings.speaker_id,
+            speaker_id,
             is_threaded=True,
         )
     except Exception as e:
@@ -152,6 +161,7 @@ class SayParam(BaseModel):
     english_word_min_length: int = settings.english_word_min_length
     english_to_kana: bool = settings.english_to_kana
     shorten_urls: bool = settings.shorten_urls
+    speaker_id: int = settings.speaker_id
 
 
 app = FastAPI()
@@ -165,6 +175,7 @@ async def get_say(
     english_word_min_length: int = settings.english_word_min_length,
     english_to_kana: bool = settings.english_to_kana,
     shorten_urls: bool = settings.shorten_urls,
+    speaker_id: int = settings.speaker_id,
 ):
     logger_http.debug(locals())
     logger_uvicorn.info(text.replace('\n', ' '))
@@ -176,7 +187,7 @@ async def get_say(
             english_word_min_length,
             english_to_kana,
             shorten_urls,
-            settings.speaker_id,
+            speaker_id,
             is_threaded=True,
         )
     except Exception as e:
@@ -197,7 +208,7 @@ async def post_say(param: SayParam):
             param.english_word_min_length,
             param.english_to_kana,
             param.shorten_urls,
-            settings.speaker_id,
+            param.speaker_id,
             is_threaded=True,
         )
     except Exception as e:
@@ -214,6 +225,7 @@ async def get_audio(
     english_word_min_length: int = settings.english_word_min_length,
     english_to_kana: bool = settings.english_to_kana,
     shorten_urls: bool = settings.shorten_urls,
+    speaker_id: int = settings.speaker_id,
 ):
     logger_http.debug(locals())
     logger_uvicorn.info(text.replace('\n', ' '))
@@ -225,7 +237,7 @@ async def get_audio(
             english_word_min_length,
             english_to_kana,
             shorten_urls,
-            settings.speaker_id,
+            speaker_id,
         )
     except Exception as e:
         logger_uvicorn.error(e)
@@ -246,7 +258,7 @@ async def post_audio(param: SayParam):
             param.english_word_min_length,
             param.english_to_kana,
             param.shorten_urls,
-            settings.speaker_id,
+            param.speaker_id,
         )
     except Exception as e:
         logger_uvicorn.error(e)
