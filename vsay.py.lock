@@ -13,8 +13,8 @@ requirements = [
     { name = "kanalizer", specifier = "==0.1.1" },
     { name = "pydantic", specifier = "==1.10.19" },
     { name = "python-dotenv", specifier = "==1.0.1" },
-    { name = "voicevox-core", marker = "platform_machine != 'x86_64'", url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_aarch64.whl" },
-    { name = "voicevox-core", marker = "platform_machine == 'x86_64'", url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_x86_64.whl" },
+    { name = "voicevox-core", marker = "platform_machine != 'x86_64'", url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_aarch64.whl" },
+    { name = "voicevox-core", marker = "platform_machine == 'x86_64'", url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_x86_64.whl" },
 ]
 
 [[package]]
@@ -109,42 +109,22 @@ wheels = [
 
 [[package]]
 name = "voicevox-core"
-version = "0.15.7+cpu"
-source = { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_aarch64.whl" }
+version = "0.16.0"
+source = { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_aarch64.whl" }
 resolution-markers = [
     "platform_machine != 'x86_64'",
 ]
-dependencies = [
-    { name = "numpy", marker = "platform_machine != 'x86_64'" },
-    { name = "pydantic", marker = "platform_machine != 'x86_64'" },
-]
 wheels = [
-    { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_aarch64.whl", hash = "sha256:c9dbedabf0156dd6175f62af48e0284cd9646c255ce47850656bdd0e2976b422" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "numpy" },
-    { name = "pydantic", specifier = ">=1.9.2,<2" },
+    { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_aarch64.whl", hash = "sha256:2a944bb90286895a0cbeef4698d2221ed5f3fb1b006d2d7ebb6620cfba3484ad" },
 ]
 
 [[package]]
 name = "voicevox-core"
-version = "0.15.7+cpu"
-source = { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_x86_64.whl" }
+version = "0.16.0"
+source = { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_x86_64.whl" }
 resolution-markers = [
     "platform_machine == 'x86_64'",
 ]
-dependencies = [
-    { name = "numpy", marker = "platform_machine == 'x86_64'" },
-    { name = "pydantic", marker = "platform_machine == 'x86_64'" },
-]
 wheels = [
-    { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_x86_64.whl", hash = "sha256:cf4a172511a46a16384d0d6a97d708bf49ef701d27c8e4a778cf47cb84e46bd5" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "numpy" },
-    { name = "pydantic", specifier = ">=1.9.2,<2" },
+    { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:dc26a9542d477d82e9970a37e5840166dbd68fc275c68c8a1dcb640aa78a7ce6" },
 ]
