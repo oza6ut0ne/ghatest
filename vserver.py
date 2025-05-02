@@ -14,8 +14,8 @@
 #
 # [tool.uv.sources]
 # voicevox-core = [
-#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_x86_64.whl", marker = "platform_machine == 'x86_64'"},
-#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.15.7/voicevox_core-0.15.7+cpu-cp38-abi3-linux_aarch64.whl", marker = "platform_machine != 'x86_64'"},
+#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_x86_64.whl", marker = "platform_machine == 'x86_64'"},
+#   { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.0/voicevox_core-0.16.0-cp310-abi3-manylinux_2_34_aarch64.whl", marker = "platform_machine != 'x86_64'"},
 # ]
 # ///
 
@@ -88,7 +88,6 @@ settings = Settings()
 logger_mqtt = logging.getLogger('mqtt')
 logger_http = logging.getLogger('http')
 logger_uvicorn = logging.getLogger('uvicorn')
-logging.getLogger('asyncio').setLevel(logging.WARNING)
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
