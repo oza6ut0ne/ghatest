@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { os: ubuntu-latest, arch: x86_64-linux }
+          - { os: ubuntu-latest, arch: aarch64-linux }
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        shell: bash
+        run: |
+          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#jsay
+          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#vsay
+          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#jserver
+          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#vserver
+      - name: Rename artifacts
+        shell: bash
+        run: |
+          mv jsay.AppImage jsay-${{ matrix.job.arch }}.AppImage
+          mv jserver.AppImage jserver-${{ matrix.job.arch }}.AppImage
+          mv vsay.AppImage vsay-${{ matrix.job.arch }}.AppImage
+          mv vserver.AppImage vserver-${{ matrix.job.arch }}.AppImage
+      - name: Build with CUDA
+        if: matrix.job.arch == 'x86_64-linux'
+        shell: bash
+        run: |
+          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#vsay-cuda
+          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#vserver-cuda
+      - name: Rename CUDA artifacts
+        if: matrix.job.arch == 'x86_64-linux'
+        shell: bash
+        run: |
+          mv vsay.AppImage vsay-cuda.AppImage
+          mv vserver.AppImage vserver-cuda.AppImage
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          files: |
+            jsay-${{ matrix.job.arch }}.AppImage
+            jserver-${{ matrix.job.arch }}.AppImage
+            vsay-${{ matrix.job.arch }}.AppImage
+            vserver-${{ matrix.job.arch }}.AppImage
+            vsay-cuda.AppImage
+            vserver-cuda.AppImage
