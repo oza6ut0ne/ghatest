@@ -77,11 +77,11 @@ jobs:
         run: |
           mv vsay.AppImage vsay-cuda.AppImage
           mv vserver.AppImage vserver-cuda.AppImage
-          if [ "$(stat -c%s vsay-cuda.AppImage)" -gt 2147483648 ]; then
+          if [ "$(stat -L -c %s vsay-cuda.AppImage)" -gt $((2*1024*1024*1024)) ]; then
             split -b 2G -a 3 -d vsay-cuda.AppImage vsay-cuda.AppImage.
             rm vsay-cuda.AppImage
           fi
-          if [ "$(stat -c%s vserver-cuda.AppImage)" -gt 2147483648 ]; then
+          if [ "$(stat -L -c %s vserver-cuda.AppImage)" -gt $((2*1024*1024*1024)) ]; then
             split -b 2G -a 3 -d vserver-cuda.AppImage vserver-cuda.AppImage.
             rm vserver-cuda.AppImage
           fi
