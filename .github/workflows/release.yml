@@ -37,7 +37,7 @@ jobs:
           mv vsay.AppImage vsay-${{ matrix.job.arch }}.AppImage
           mv vserver.AppImage vserver-${{ matrix.job.arch }}.AppImage
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -51,11 +51,11 @@ jobs:
         if: matrix.job.arch == 'x86_64-linux'
         shell: bash
         run: |
-          rm jsay.AppImage
-          rm jserver.AppImage
-          rm vsay.AppImage
-          rm vserver.AppImage
-          nix store gc
+          for file in jsay.AppImage jserver.AppImage vsay.AppImage vserver.AppImage; do
+            path=$(readlink -f "$file")
+            rm "$file"
+            nix store delete "$path"
+          done
       - name: Build with CUDA
         if: matrix.job.arch == 'x86_64-linux'
         shell: bash
@@ -69,7 +69,7 @@ jobs:
           mv vsay.AppImage vsay-cuda.AppImage
           mv vserver.AppImage vserver-cuda.AppImage
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
