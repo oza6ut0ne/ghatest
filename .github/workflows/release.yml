@@ -85,7 +85,8 @@ jobs:
             split -b 2G -a 3 -d vserver-cuda.AppImage vserver-cuda.AppImage.
             rm vserver-cuda.AppImage
           fi
-      - name: Release
+      - name: Release CUDA artifacts
+        if: matrix.job.arch == 'x86_64-linux'
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
