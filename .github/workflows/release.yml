@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           sudo mkdir -p /mnt/nix
-          sudo ln -s /mnt/nix /nix
+          sudo mount --bind /mnt/nix /nix
       - uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
