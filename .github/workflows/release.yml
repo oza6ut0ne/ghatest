@@ -53,10 +53,11 @@ jobs:
         if: matrix.job.arch == 'x86_64-linux'
         shell: bash
         run: |
-          for file in jsay.AppImage jserver.AppImage vsay.AppImage vserver.AppImage; do
-            path=$(readlink -f "$file")
-            rm "$file"
-            nix store delete "$path"
+          for name in jsay jserver vsay vserver; do
+            file=$name-${{ matrix.job.arch }}.AppImage
+            path=$(readlink -f $file)
+            rm $file
+            nix store delete $path
           done
       - name: Build with CUDA
         if: matrix.job.arch == 'x86_64-linux'
