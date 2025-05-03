@@ -21,3 +21,6 @@ jobs:
         shell: bash
         run: |
           df -hT
+          ls -alF /mnt
+          pwd
+          ls -alF
