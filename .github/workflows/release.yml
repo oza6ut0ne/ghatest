@@ -47,8 +47,6 @@ jobs:
             jserver-${{ matrix.job.arch }}.AppImage
             vsay-${{ matrix.job.arch }}.AppImage
             vserver-${{ matrix.job.arch }}.AppImage
-            vsay-cuda.AppImage
-            vserver-cuda.AppImage
       - name: Clean up
         if: matrix.job.arch == 'x86_64-linux'
         shell: bash
@@ -70,3 +68,12 @@ jobs:
         run: |
           mv vsay.AppImage vsay-cuda.AppImage
           mv vserver.AppImage vserver-cuda.AppImage
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          files: |
+            vsay-cuda.AppImage
+            vserver-cuda.AppImage
