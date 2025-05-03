@@ -77,9 +77,7 @@
             voicevox-core-cpu
           ];
           buildInputsForVsayCuda = lib.remove pkgs.python313 buildInputsBase ++ [
-            pkgs-23_11.stdenv.cc.cc
-            pkgs-23_11.libz
-            pkgs-23_11.cudaPackages_11.cudatoolkit
+            pkgs-23_11.cudaPackages_11.cuda_cudart
             voicevox-core-cuda
             voicevox-cuda-additional-libraries
           ];
