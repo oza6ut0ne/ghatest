@@ -115,16 +115,16 @@
 
           OPEN_JTALK_DIC = "${pkgsNixdot.open-jtalk}/dic";
           HTSVOICE = "${htsvoice-tohoku-f01.out}/tohoku-f01-angry.htsvoice";
-          VOICEVOX_MODELS= "${voicevox-models}/vvms";
-          ONNXRUNTIME_CPU= "${voicevox-core-cpu}/lib/libvoicevox_onnxruntime.so";
-          ONNXRUNTIME_CUDA= "${voicevox-core-cuda}/lib/libvoicevox_onnxruntime.so";
+          VOICEVOX_MODELS = "${voicevox-models}/vvms";
+          ONNXRUNTIME_CPU = "${voicevox-core-cpu}/lib/libvoicevox_onnxruntime.so";
+          ONNXRUNTIME_CUDA = "${voicevox-core-cuda}/lib/libvoicevox_onnxruntime.so";
           LD_LIBRARY_PATH_FOR_VSAY = pkgs.lib.makeLibraryPath buildInputsForVsay;
           LD_LIBRARY_PATH_FOR_VSAY_CUDA =
             pkgs.lib.makeLibraryPath buildInputsForVsayCuda
             + ":${voicevox-core-cuda}:${voicevox-cuda-additional-libraries}";
 
-          mkSubCommands = deps: ''
-            (${(lib.concatMapStrings (dep: "\"${dep.name}\" ") deps) + "\"setup\""})
+          mkSubCommands = packages: ''
+            (${(lib.concatMapStrings (package: "\"${package.name}\" ") packages) + "\"setup\""})
           '';
           mkSubFunction = package: ''
             ${package.name}() {
