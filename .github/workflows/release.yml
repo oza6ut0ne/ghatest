@@ -44,16 +44,16 @@ jobs:
           files: |
             jtts-${{ matrix.job.archname }}.AppImage
             tts-${{ matrix.job.archname }}.AppImage
-      # - name: Clean up
-      #   if: matrix.job.arch == 'x86_64-linux'
-      #   shell: bash
-      #   run: |
-      #     for name in jtts tts; do
-      #       file=$name-${{ matrix.job.archname }}.AppImage
-      #       path=$(readlink -f $file)
-      #       rm $file
-      #       nix store delete $path
-      #     done
+      - name: Clean up
+        if: matrix.job.arch == 'x86_64-linux'
+        shell: bash
+        run: |
+          for name in jtts tts; do
+            file=$name-${{ matrix.job.archname }}.AppImage
+            path=$(readlink -f $file)
+            rm $file
+            nix store delete $path
+          done
       - name: Build with CUDA
         if: matrix.job.arch == 'x86_64-linux'
         shell: bash
