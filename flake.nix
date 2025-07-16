@@ -4,10 +4,17 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-23_11.url = "github:NixOS/nixpkgs/release-23.11";
+
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
+
+    nix-appimage = {
+      url = "github:ralismark/nix-appimage";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixdot = {
       url = "github:oza6ut0ne/nixdot";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -288,6 +295,19 @@
                   }
                 '';
               };
+            };
+
+            jtts-appimage = inputs.nix-appimage.lib.${system}.mkAppImage {
+              program = "${jtts.out}/bin/jtts";
+            };
+
+            tts-appimage = inputs.nix-appimage.lib.${system}.mkAppImage {
+              program = "${tts.out}/bin/tts";
+            };
+
+            tts-cuda-appimage = inputs.nix-appimage.lib.${system}.mkAppImage {
+              program = "${tts-cuda.out}/bin/tts";
+              pname = "tts-cuda";
             };
           };
 

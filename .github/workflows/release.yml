@@ -33,8 +33,8 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#jtts -o jtts-${{ matrix.job.archname }}.AppImage
-          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#tts -o tts-${{ matrix.job.archname }}.AppImage
+          nix --system ${{ matrix.job.arch }} build .#jtts-appimage -o jtts-${{ matrix.job.archname }}.AppImage
+          nix --system ${{ matrix.job.arch }} build .#tts-appimage -o tts-${{ matrix.job.archname }}.AppImage
       - name: Release
         uses: softprops/action-gh-release@v2
         env:
@@ -58,7 +58,7 @@ jobs:
         if: matrix.job.arch == 'x86_64-linux'
         shell: bash
         run: |
-          nix --system ${{ matrix.job.arch }} bundle --bundler github:ralismark/nix-appimage/fc1192dbec82f5857f86ccc6dfdf2ad97bc9c62a .#tts-cuda -o tts-cuda.AppImage
+          nix --system ${{ matrix.job.arch }} build .#tts-cuda-appimage -o tts-cuda.AppImage
       - name: Split CUDA artifacts
         if: matrix.job.arch == 'x86_64-linux'
         shell: bash
