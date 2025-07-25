@@ -1,0 +1,44 @@
+name: Release
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { os: ubuntu-latest, arch: x86_64-linux,  archname: x86_64 }
+          - { os: ubuntu-latest, arch: aarch64-linux, archname: aarch64 }
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up storage
+        shell: bash
+        run: |
+          sudo mkdir -p /mnt/nix
+          sudo mkdir /nix
+          sudo mount --bind /mnt/nix /nix
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up QEMU
+        if: matrix.job.arch == 'aarch64-linux'
+        uses: docker/setup-qemu-action@v3
+      - name: Build
+        shell: bash
+        run: |
+          nix --system ${{ matrix.job.arch }} build .#appimage -o ggwave-${{ matrix.job.archname }}.AppImage
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          files: |
+            ggwave-${{ matrix.job.archname }}.AppImage
