@@ -27,6 +27,10 @@ jobs:
       - uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: cachix/cachix-action@v14
+        with:
+          name: oza6ut0ne
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Set up QEMU
         if: matrix.job.arch == 'aarch64-linux'
         uses: docker/setup-qemu-action@v3
