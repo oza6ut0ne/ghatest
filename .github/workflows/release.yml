@@ -38,7 +38,7 @@ jobs:
       - name: release
         uses: softprops/action-gh-release@v1
         with:
-          name: ${{ steps.get_version.outputs.SOURCE_TAG }}-debug
+          name: "${{ steps.get_version.outputs.SOURCE_TAG }}-debug"
           draft: true
           files: |
             build/*.exe
