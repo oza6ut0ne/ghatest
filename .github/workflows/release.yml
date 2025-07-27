@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: get version name
         id: get_version
-        run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+        run: echo "SOURCE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       - name: build
         run: ./build.sh -d
       - name: release
