@@ -34,7 +34,8 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          GOOS=${{ matrix.job.goos }} GOARCH=${{ matrix.job.goarch }} go build
+          export GOOS=${{ matrix.job.goos }} GOARCH=${{ matrix.job.goarch }}
+          go build -ldflags="-s -w" -trimpath
 
       - name: Rename artifacts
         if: startsWith( matrix.job.os, 'windows') != true
