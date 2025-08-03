@@ -1,0 +1,67 @@
+name: Release
+permissions:
+  contents: write
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { os: ubuntu-latest,  goos: linux,   goarch: 386      }
+          - { os: ubuntu-latest,  goos: linux,   goarch: amd64    }
+          - { os: ubuntu-latest,  goos: linux,   goarch: arm      }
+          - { os: ubuntu-latest,  goos: linux,   goarch: arm64    }
+          - { os: ubuntu-latest,  goos: linux,   goarch: mips     }
+          - { os: ubuntu-latest,  goos: linux,   goarch: mips64   }
+          - { os: ubuntu-latest,  goos: linux,   goarch: mips64le }
+          - { os: ubuntu-latest,  goos: linux,   goarch: mipsle   }
+          - { os: macos-latest,   goos: darwin,  goarch: amd64    }
+          - { os: macos-latest,   goos: darwin,  goarch: arm64    }
+          - { os: windows-latest, goos: windows, goarch: 386      }
+          - { os: windows-latest, goos: windows, goarch: amd64    }
+          - { os: windows-latest, goos: windows, goarch: arm      }
+          - { os: windows-latest, goos: windows, goarch: arm64    }
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build
+        shell: bash
+        run: |
+          GOOS=${{ matrix.job.goos }} GOARCH=${{ matrix.job.goarch }} go build
+
+      - name: Rename artifacts
+        if: startsWith( matrix.job.os, 'windows') != true
+        shell: bash
+        run: |
+          mv goqr{,-${{ matrix.job.goos }}-${{ matrix.job.goarch }}}
+
+      - name: Rename artifacts Windows
+        if: startsWith( matrix.job.os, 'windows') == true
+        shell: bash
+        run: |
+          mv goqr{,-${{ matrix.job.goos }}-${{ matrix.job.goarch }}}.exe
+
+      - name: Release
+        if: startsWith( matrix.job.os, 'windows') != true
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            goqr-${{ matrix.job.goos }}-${{ matrix.job.goarch }}
+
+      - name: Release Windows
+        if: startsWith( matrix.job.os, 'windows') == true
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            goqr-${{ matrix.job.goos }}-${{ matrix.job.goarch }}.exe
